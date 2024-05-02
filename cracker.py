@@ -1,4 +1,4 @@
-
+import random
 def monoalphabetic(dictionary_file, ct, partial = {}, flag_format = "flag", tolerance_max = 20, nocolor = False, debug = 1):
     """Cracks a monoalphabetic substitution cipher
 
@@ -14,7 +14,7 @@ def monoalphabetic(dictionary_file, ct, partial = {}, flag_format = "flag", tole
         level 3 adds prints signaling whenever the backtracking exits or enters the function, useful to detect when thrashing happens \\
         level 4 prints which words, completely decrypted by the key are not in the dictionary
     :return: if it is found, the plaintext, otherwise None
-    """
+    """    
     with open(dictionary_file) as f:
         dc = set(map(str.upper, map(str.strip, f.readlines())))
     dc.add(flag_format.upper())
@@ -25,8 +25,8 @@ def monoalphabetic(dictionary_file, ct, partial = {}, flag_format = "flag", tole
         else:
             s += ' '
     words = s.split()
-
-
+    alphabet = set(filter(str.isalpha,map(str.upper, ct)))
+    
     def sub_letter(sub, c):
         if c == c.lower():
             return sub[c.upper()].lower()
@@ -51,15 +51,20 @@ def monoalphabetic(dictionary_file, ct, partial = {}, flag_format = "flag", tole
             if debug >= 2:
                 print(substitute(sub, ct))
         mn = 1e9
-        trg = 'asd'
         tolerance = tolerance_max
+        targets = []
         for x in words:
             c = 0
             for y in x:
                 if y not in sub:
                     c += 1
             if c > 0 and c < mn:
-                trg, mn = x, c
+                mn = c
+                targets = [x]
+            elif c == mn:
+                if len(x) > len(targets[0]):
+                    targets = []
+                targets += [x]
             if c == 0:
                 if substitute_no_color(sub, x).upper() not in dc:
                     tolerance -= 1
@@ -69,9 +74,9 @@ def monoalphabetic(dictionary_file, ct, partial = {}, flag_format = "flag", tole
                 if debug >= 3:
                     print("exit, tolerance exceeded")
                 return
+        trg = random.choice(targets)
 
-
-        if all([x in sub for x in "КАИЖНЭСЖИЁЕФСОТХЪОЖХСОТДЙСМЕТДДБФЁЕТКФДБИЁЕФСЪЖЕПФОЬДЁСЕТДДБФЁЕТКФДБСЯЪМФШЬАПЙДУЭРЕЮЛЖЩХГЧЗОБЫВКИЦЁТН"]):
+        if all([x in sub for x in alphabet]):
             if debug >= 1:
                 print("FINAL RESULT")
                 print(substitute(sub, ct))
@@ -97,4 +102,3 @@ def monoalphabetic(dictionary_file, ct, partial = {}, flag_format = "flag", tole
             print(f"exit, no suitable substitution for word {substitute(sub, trg)}")
 
     return btrack(partial)
-
