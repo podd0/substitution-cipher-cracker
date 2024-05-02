@@ -22,5 +22,4 @@ into words from the dictionary. The way the words to substitute are chosen is "g
 partial key".
 
 
-I'm sure it can be optimized (maybe with frequency of letters) as thrashing occurs often if the 
-partial guessed key is short
+Feels "good enough" by now, but there's room for improvement
