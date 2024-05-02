@@ -42,15 +42,22 @@ def monoalphabetic(dictionary_file, ct, partial = {}, flag_format = "flag", tole
         substitute = substitute_no_color
     best = 0
 
-    def btrack(sub):
+    def btrack(sub, depth = 0):
         nonlocal best
+
+        if all([x in sub for x in alphabet]):
+            if debug >= 1:
+                print("FINAL RESULT")
+                print(substitute(sub, ct))
+            return substitute_no_color(sub, ct)
+        if debug >= 3:
+            print(f"recursion depth = {depth}")
         if len(sub) > best:
             best = len(sub)
             if debug >= 1:
                 print(f"best match = {best}")
             if debug >= 2:
                 print(substitute(sub, ct))
-        mn = 1e9
         tolerance = tolerance_max
         targets = []
         for x in words:
@@ -58,13 +65,8 @@ def monoalphabetic(dictionary_file, ct, partial = {}, flag_format = "flag", tole
             for y in x:
                 if y not in sub:
                     c += 1
-            if c > 0 and c < mn:
-                mn = c
-                targets = [x]
-            elif c == mn:
-                if len(x) > len(targets[0]):
-                    targets = []
-                targets += [x]
+            if c > 0:
+                targets += [(x, c)]
             if c == 0:
                 if substitute_no_color(sub, x).upper() not in dc:
                     tolerance -= 1
@@ -74,31 +76,28 @@ def monoalphabetic(dictionary_file, ct, partial = {}, flag_format = "flag", tole
                 if debug >= 3:
                     print("exit, tolerance exceeded")
                 return
-        trg = random.choice(targets)
+        targets.sort(key = lambda x:(len(x[0]), -x[1]), reverse=True)
+        targets = targets[:tolerance_max+1]
 
-        if all([x in sub for x in alphabet]):
-            if debug >= 1:
-                print("FINAL RESULT")
-                print(substitute(sub, ct))
-            return substitute(sub, ct)
-
-        for s in dc:
-            if len(s) == len(trg):
-                no = False
-                for ti, si in zip(trg, s):
-                    if ti in sub and sub[ti] != si:
-                        no = True
-                if no:
-                    continue
-                sub2 = sub.copy()
-                for ti, si in zip(trg, s):
-                    sub2[ti] = si
-                if debug >= 3:
-                    print(f"TARGET SUBSTITUTED : {substitute(sub, trg)} -> {substitute(sub2, trg)}")
-                ret = btrack(sub2)
-                if ret is not None:
-                    return ret
+        for trg, _ in targets:
+            for s in dc:
+                if len(s) == len(trg):
+                    no = False
+                    for ti, si in zip(trg, s):
+                        if ti in sub and sub[ti] != si:
+                            no = True
+                    if no:
+                        continue
+                    sub2 = sub.copy()
+                    for ti, si in zip(trg, s):
+                        sub2[ti] = si
+                    if debug >= 3:
+                        print(f"TARGET SUBSTITUTED : {substitute(sub, trg)} -> {substitute(sub2, trg)}")
+                    ret = btrack(sub2, depth+1)
+                    if ret is not None:
+                        return ret
+            if debug >= 3:
+                print(f"no suitable substitution for word {substitute(sub, trg)}")
         if debug >= 3:
-            print(f"exit, no suitable substitution for word {substitute(sub, trg)}")
-
+            print("exit, no possible substitution")
     return btrack(partial)

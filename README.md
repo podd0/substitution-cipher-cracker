@@ -16,9 +16,11 @@ in the dictionary.
 It can also be given a partial key, which the user can guess to speed up the execution
 
 # Algorithm 
-This is just a backtracking algorithm, which builds a key by doing steps
-as small as possible, by choosing a word in the ciphertext and extending
-the key to fully translate that word to a word in the dictionary. 
+This is just a backtracking algorithm, which builds a key incrementally.
+At each layer of the backtracking tree, we choose `tolerance_max+1` words in the ciphertext to turn 
+into words from the dictionary. The way the words to substitute are chosen is "greatest length, least number of characters not in the
+partial key".
+
 
 I'm sure it can be optimized (maybe with frequency of letters) as thrashing occurs often if the 
 partial guessed key is short
